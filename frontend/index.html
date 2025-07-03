@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Machine Test</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Student Marks Entry</h2>
+  <form id="studentForm">
+    <input type="text" name="name" placeholder="Name (max 20 chars)" required maxlength="20">
+    <input type="number" name="math" placeholder="Math (0-100)" required min="0" max="100">
+    <input type="number" name="science" placeholder="Science (0-100)" required min="0" max="100">
+    <input type="number" name="english" placeholder="English (0-100)" required min="0" max="100">
+    <button type="submit">Submit</button>
+  </form>
+
+  <h3>All Students</h3>
+  <table id="studentsTable">
+    <thead>
+      <tr><th>Name</th><th>Math</th><th>Science</th><th>English</th><th>Total</th><th>Grade</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById('studentForm');
+    const tableBody = document.querySelector('#studentsTable tbody');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      // Convert marks to numbers
+      data.math = +data.math;
+      data.science = +data.science;
+      data.english = +data.english;
+
+      await fetch('http://localhost:5000/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      form.reset();
+      loadStudents();
+    });
+
+    async function loadStudents() {
+      const res = await fetch('http://localhost:5000/students');
+      const students = await res.json();
+      tableBody.innerHTML = '';
+      students.forEach(s => {
+        tableBody.innerHTML += `
+          <tr>
+            <td>${s.name}</td>
+            <td>${s.math}</td>
+            <td>${s.science}</td>
+            <td>${s.english}</td>
+            <td>${s.total}</td>
+            <td>${s.grade}</td>
+          </tr>
+        `;
+      });
+    }
+
+    window.onload = loadStudents;
+  </script>
+</body>
+</html>
